@@ -1,0 +1,8 @@
+{
+  "name": "nrf",
+  "version": "0.0.0",
+  "main": "nrf.js",
+  "dependencies": {
+    "noble": "~0.2.2"
+  }
+}

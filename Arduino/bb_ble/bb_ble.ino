@@ -1,13 +1,15 @@
+#include <DHT.h>
+
 // based off of: http://dmitry.gr/index.php?r=05.Projects&proj=11.%20Bluetooth%20LE%20fakery
 
-#include <stdio.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sleep.h>
-#define F_CPU	8000000
-#include <avr/delay.h>
-
-#include <stdint.h>
+//#include <stdio.h>
+//#include <avr/io.h>
+//#include <avr/interrupt.h>
+//#include <avr/sleep.h>
+//#define F_CPU	8000000
+//#include <avr/delay.h>
+//
+//#include <stdint.h>
 
 #define PIN_CE	8 //Output
 #define PIN_nCS	7 //Output
@@ -20,11 +22,13 @@
 #define MY_MAC_4	0x18
 #define MY_MAC_5	0x00
 
+#define DHTPIN 2
+#define DHTTYPE DHT22
 
-ISR(PCINT0_vect)
-{
-	//useless
-}
+//ISR(PCINT0_vect)
+//{
+//	//useless
+//}
 
 void btLeCrc(const uint8_t* data, uint8_t len, uint8_t* dst){
 
@@ -165,6 +169,8 @@ void nrf_manybytes(uint8_t* data, uint8_t len){
 //	sei();
 //}
 
+DHT dht(DHTPIN, DHTTYPE);
+
 void setup() {
   // set the digital pin as output:
   pinMode(PIN_nCS, OUTPUT);
@@ -174,6 +180,8 @@ void setup() {
   
   Serial.begin(9600);
   Serial.println("HELLO");
+  
+  dht.begin();
 }
 
 void loop() { //int main (void)
@@ -212,11 +220,14 @@ void loop() { //int main (void)
 	
 	
 	while(1){
+  
+                float h = dht.readHumidity() ;
+                float t = dht.readTemperature();
 		
 		L = 0;
 		
 		buf[L++] = 0x40;	//PDU type, given address is random
-                buf[L++] = 0x11; //17 bytes of payload
+                buf[L++] = 0x11 /*+ 8*/ + 10; //17 bytes of payload
 		
 		buf[L++] = MY_MAC_0;
 		buf[L++] = MY_MAC_1;
@@ -229,14 +240,23 @@ void loop() { //int main (void)
 		buf[L++] = 0x01;
 		buf[L++] = 0x05;
 		
-		buf[L++] = 7;
+		buf[L++] = 7;// + 8;
 		buf[L++] = 0x08;
+
 		buf[L++] = 'n';
 		buf[L++] = 'R';
 		buf[L++] = 'F';
 		buf[L++] = ' ';
 		buf[L++] = 'L';
 		buf[L++] = 'E';
+
+                buf[L++] = 9;
+                buf[L++] = 0xff;
+                memcpy(&buf[L], &h, 4);
+                L += 4;
+                memcpy(&buf[L], &t, 4);
+                L += 4;
+                
 		
 		buf[L++] = 0x55;	//CRC start value: 0x555555
 		buf[L++] = 0x55;
