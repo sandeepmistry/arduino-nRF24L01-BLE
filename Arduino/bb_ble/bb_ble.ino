@@ -226,7 +226,7 @@ void loop() { //int main (void)
 		
 		L = 0;
 		
-		buf[L++] = 0x40;	//PDU type, given address is random
+		buf[L++] = 0x42;	//PDU type, given address is random
                 buf[L++] = 0x11 /*+ 8*/ + 10; //17 bytes of payload
 		
 		buf[L++] = MY_MAC_0;
